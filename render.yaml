@@ -1,0 +1,10 @@
+
+services:
+  - type: web
+    name: myxl-cli-web
+    env: docker
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: MYXL_API_KEY
+        sync: false
