@@ -1,0 +1,92 @@
+
+<!-- webapp/templates/dashboard.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - myxl-cli Web</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script>
+    async function loadMe(){
+      const r = await fetch('/api/me');
+      const j = await r.json();
+      if(j.ok){
+        document.getElementById('balance').innerText = JSON.stringify(j.balance, null, 2);
+      }
+    }
+    async function loadPackages(){
+      const r = await fetch('/api/packages/xut');
+      const j = await r.json();
+      const list = document.getElementById('pkg-list');
+      list.innerHTML = '';
+      if(j.ok){
+        j.packages.forEach(p=>{
+          const li = document.createElement('li');
+          li.innerHTML = `<b>${p.name}</b> • Rp ${p.price} <br><code>${p.code}</code>
+          <div class="inline">
+            <button onclick="buyQris('${p.code}', ${p.price})">Beli QRIS</button>
+            <button onclick="buyDana('${p.code}', ${p.price})">Beli DANA</button>
+          </div>`;
+          list.appendChild(li);
+        });
+      }else{
+        list.innerHTML = '<li>Gagal memuat paket.</li>';
+      }
+    }
+    async function buyQris(code, price){
+      const fd = new FormData();
+      fd.append('code', code);
+      fd.append('price', String(price));
+      const r = await fetch('/api/purchase/qris', {method:'POST', body:fd});
+      const j = await r.json();
+      if(j.ok){
+        const img = document.getElementById('qris-img');
+        img.src = 'data:image/png;base64,' + j.qris_png_base64;
+        document.getElementById('qris-raw').innerText = j.qris;
+        document.getElementById('txid').innerText = j.transaction_id;
+        document.getElementById('qris-box').style.display = 'block';
+      }else{
+        alert(JSON.stringify(j));
+      }
+    }
+    async function buyDana(code, price){
+      const wallet = prompt('Masukkan nomor DANA/OVO/LinkAja:');
+      if(!wallet) return;
+      const fd = new FormData();
+      fd.append('code', code);
+      fd.append('price', String(price));
+      fd.append('wallet_number', wallet);
+      fd.append('method', 'DANA');
+      const r = await fetch('/api/purchase/ewallet',{method:'POST', body:fd});
+      const j = await r.json();
+      if(j.ok){
+        alert('Transaksi dibuat. Buka aplikasi ewallet Anda.\nTXID: ' + j.transaction_id);
+      }else{
+        alert(JSON.stringify(j));
+      }
+    }
+    window.addEventListener('DOMContentLoaded', ()=>{ loadMe(); loadPackages(); });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Dashboard</h1>
+    <div class="card">
+      <h3>Saldo</h3>
+      <pre id="balance">Loading...</pre>
+    </div>
+    <div class="card">
+      <h3>Paket XUT (contoh)</h3>
+      <ul id="pkg-list"><li>Loading...</li></ul>
+    </div>
+    <div id="qris-box" class="card" style="display:none;">
+      <h3>QRIS</h3>
+      <p>Transaction ID: <code id="txid"></code></p>
+      <img id="qris-img" style="max-width:260px; display:block; margin:12px 0;">
+      <pre id="qris-raw"></pre>
+    </div>
+    <p><a href="/">Home</a></p>
+  </div>
+</body>
+</html>

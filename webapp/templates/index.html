@@ -1,0 +1,49 @@
+
+<!-- webapp/templates/index.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>myxl-cli Web</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script>
+    async function setApiKey(e){
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const r = await fetch('/api/api-key', {method:'POST', body:fd});
+      const j = await r.json();
+      if(j.ok){ location.reload(); } else { alert(JSON.stringify(j)); }
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>myxl-cli Web</h1>
+    {% if not api_key_set %}
+      <div class="card warn">
+        <b>MYXL_API_KEY belum di-set.</b>
+        <form onsubmit="setApiKey(event)">
+          <label>API Key</label>
+          <input name="api_key" placeholder="paste key di sini" required>
+          <button type="submit">Set Sementara</button>
+        </form>
+        <p class="muted">Pada server produksi, lebih aman set environment variable <code>MYXL_API_KEY</code>.</p>
+      </div>
+    {% endif %}
+
+    {% if active_user %}
+      <div class="card">
+        <h2>User Aktif</h2>
+        <p>Nomor: <b>{{active_user.number}}</b></p>
+        <a class="btn" href="/dashboard">Buka Dashboard</a>
+      </div>
+    {% else %}
+      <div class="card">
+        <h2>Login</h2>
+        <a class="btn" href="/login">Masuk / Verifikasi OTP</a>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+
+<!-- webapp/templates/login.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - myxl-cli Web</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script>
+    async function requestOtp(e){
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const r = await fetch('/api/login/request-otp',{method:'POST', body:fd});
+      const j = await r.json();
+      alert(j.ok ? 'OTP dikirim. Cek SMS MyXL.' : JSON.stringify(j));
+    }
+    async function submitOtp(e){
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const r = await fetch('/api/login/submit-otp',{method:'POST', body:fd});
+      const j = await r.json();
+      if(j.ok){ location.href = "/dashboard"; } else { alert(JSON.stringify(j)); }
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Login / Verifikasi OTP</h1>
+    <div class="grid">
+      <div class="card">
+        <h3>1) Minta OTP</h3>
+        <form onsubmit="requestOtp(event)">
+          <label>Nomor XL (format 628...)</label>
+          <input name="contact" required>
+          <button>Request OTP</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3>2) Submit OTP</h3>
+        <form onsubmit="submitOtp(event)">
+          <label>Nomor XL (628...)</label>
+          <input name="contact" required>
+          <label>Kode OTP</label>
+          <input name="otp" required>
+          <button>Submit & Login</button>
+        </form>
+      </div>
+    </div>
+    <p><a href="/">Kembali</a></p>
+  </div>
+</body>
+</html>
